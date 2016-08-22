@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="AZChat" ng-controller="ctrl">
+<head>
+  <meta charset="UTF-8">
+  <title>AZChat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+  <style>
+    body {
+      background-color: #ccc;
+    }
+    #msgs {
+      height: 100%;
+      background-color: #eee;
+      overflow-y: scroll;
+    }
+    .msg {
+      background-color: #fff; 
+      margin: 20px;
+      padding: 20px;
+      border-radius: 5px;
+    }
+    #send {
+      position: fixed;
+      bottom: 0;
+      padding: 20px;
+      widows: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="msgs">
+    <div class="msg animated flipInX" ng-repeat="msg in msgs">
+      <div class="author"><i>{{msg.author}}</i>:</div>
+      <div class="msg-text">{{msg.msg}}</div>
+    </div>
+  </div>
+  <div id="send">
+    <input type="text" ng-model="msg.author" placeholder="Имя">
+    <input type="text" ng-model="msg.msg" placeholder="Сообщение">
+    <button ng-click="send(msg)">Отпр.<i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.8/angular.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+  <script>
+    var AZChat = {
+      config: {
+        domain: 'http://188.244.190.92'
+      }
+    }
+    angular.module('AZChat', [])
+      .controller('ctrl', ['$scope', function($scope) {
+        var socket = io(AZChat.config.domain);
+        $scope.msgs = [];
+        var isFirst = true;
+        if (isFirst) {
+          socket.emit('first connection');
+          isFirst = false;
+        }
+        socket.on('all msgs', function (msgs) {
+          $scope.msgs = msgs;
+          console.log('all msgs', msgs)
+          $scope.$apply();
+        });
+        socket.on('new msg', function (msg) {
+          console.log('new msg', msg);
+          $scope.msgs.push(msg);
+          $scope.$apply();
+          window.scrollTo(0,document.body.scrollHeight);
+        });
+        $scope.send = function(msg) {
+          socket.emit('send msg', JSON.stringify(msg));
+          console.log('msg', msg);
+        }
+    }]);
+  </script>
+  <script>
+</script>
+</body>
+</html>
